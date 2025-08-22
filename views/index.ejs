@@ -139,40 +139,41 @@
     <article>
       <h3 id="DD"><em> Отзыв </em> <a href="#nav">К навигационному меню</a></h3>
       <p>Нам очень важно ваше мнение, поэтому, если вам не составит труда напишите отзыв о нашем сайте,<br>что вам нравиться и не нравиться. А также не забудьте отметить необходимую галочку.</p>
-      <form method="post">
-      <fieldset>
-        <p><label>Выберите дату и время написания</label></P>
-        <p><input type="datetime-local" value="2025-07-30T14:47"></p>
-        <p>Вам нравиться сайт?</p>
-        <input type= radio id="YES" name="Z" value="v">
-        <label for="YES" value="YES">Да</label>
+    <form action="/save-data" method="post">
+  <fieldset>
+    <p><label>Выберите дату и время написания</label></P>
+    <p><input type="datetime-local" name="dateTime" value="2025-07-30T14:47"></p>
 
-        <input type= radio id="NOT" name="Z" value="k">
-        <label for="NOT" value="NOT">Нет</label>
+    <p>Вам нравиться сайт?</p>
+    <input type="radio" id="YES" name="Z" value="v">
+    <label for="YES">Да</label>
 
-        <input type= radio id="IDK" name="Z" value="l">
-        <label for="IDK" value="IDK">Не знаю</label>
+    <input type="radio" id="NOT" name="Z" value="k">
+    <label for="NOT">Нет</label>
 
-        <p><label for="Like">Какой раздел вам больше понравился?</label></p>
-        <select id="Like" name="Like">
-        <optgroup label="Шапка">
-          <option selected value="Welcome"> Добро пожаловать!</option>
-        </optgroup>
-        <optgroup label="Основная часть">
-          <option value="tests"> Небольшие тесты</option>
-          <option value="spisok"> Список того, что в будущем будет добавлено на сайт</option>
-          <option value="cats"> КОТЯТА</option>
-          <option value="red"> Особая часть</option>
-        </optgroup>
-        <optgroup label="Подвал">
-          <option value="footer"> Контактная  информация</option>
-        </optgroup>
-        </select>
+    <input type="radio" id="IDK" name="Z" value="l">
+    <label for="IDK">Не знаю</label>
 
-        <p><textarea for="COMMENT" name="COMMENT" id="COMMENT" rows="5" cols="30" maxlength="1000" placeholder="Напишите ваш отзыв о сайте."></textarea></p>
-        <p><button type="submit">Отправить</button> <button type="reset">Сбросить</button></p>
-      </fieldset>
-      </form>
+    <p><label for="Like">Какой раздел вам больше понравился?</label></p>
+    <select id="Like" name="Like">
+      <optgroup label="Шапка">
+        <option selected value="Welcome"> Добро пожаловать!</option>
+      </optgroup>
+      <optgroup label="Основная часть">
+        <option value="tests"> Небольшие тесты</option>
+        <option value="spisok"> Список того, что в будущем будет добавлено на сайт</option>
+        <option value="cats"> КОТЯТА</option>
+        <option value="red"> Особая часть</option>
+      </optgroup>
+      <optgroup label="Подвал">
+        <option value="footer"> Контактная  информация</option>
+      </optgroup>
+    </select>
+
+    <p><textarea name="COMMENT" id="COMMENT" rows="5" cols="30" maxlength="1000" placeholder="Напишите ваш отзыв о сайте."></textarea></p>
+    <p><button type="submit">Отправить</button> <button type="reset">Сбросить</button></p>
+  </fieldset>
+</form>
     </article>
     </section>
     <aside>

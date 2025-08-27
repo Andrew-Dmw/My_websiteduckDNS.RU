@@ -25,5 +25,3 @@ function logOsInfo() {
 
     logger.info('OS Info', osInfo);
 }
-
-module.exports = logOsInfo();

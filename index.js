@@ -7,7 +7,7 @@ const expressLayouts = require('express-ejs-layouts');
 const path = require('path');
 const Logger = require('./logger');
 const session = require('express-session');
-const csrf = require('csurf');
+const csrf = require('@fastify/csrf-protection');
 const rateLimit = require("express-rate-limit");
 
 const app = express();
@@ -69,6 +69,16 @@ app.use(function (req, res, next) {
     next();
   });
 
+async function initializeCsrf(app) {
+  await app.register(csrf, {
+    sessionPlugin: 'express-session' // Необходимо указать, что используется express-session
+  });
+}
+
+initializeCsrf(app)
+  .then(() => {
+    console.log('CSRF protection initialized.');
+
 // Маршруты
 app.get('/', csrfProtection, (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -124,22 +134,25 @@ app.post('/save-data', limiter, csrfProtection, async (req, res) => {
     } catch (error) {
         console.error('Ошибка сохранения в базу данных:', error);
         res.status(500).send('Ошибка сохранения данных.');
+        console.error('CSRF validation error:', error);
+        res.status(400).send('CSRF validation failed.');
     }
-});
+})
 
 // Thank you route
 app.get('/thank-you', (req, res) => {
     res.render('thank-you', { title: 'Спасибо за ваш отзыв!' });
 });
+}).catch(err => {
+    console.error('Failed to initialize CSRF protection:', err);
+});
 
-// Error handling middleware for CSRF errors
 app.use(function (err, req, res, next) {
-    if (err.code !== 'EBADCSRFTOKEN') return next(err)
-
+  if (err.message !== 'CSRF validation failed') return next(err)  // Possible change
     // handle CSRF token errors here
     res.status(403)
     res.send('Form tampered with')
-  })
+})
 
 // Middleware для логирования запросов
 app.use((req, res, next) => {

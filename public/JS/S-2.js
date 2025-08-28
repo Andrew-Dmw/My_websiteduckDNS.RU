@@ -98,3 +98,11 @@ butto.addEventListener ("click", D);
             break;
         };
     }
+
+    //защита от повторного использования
+        document.addEventListener('DOMContentLoaded', function() {
+          document.getElementById('myForm').addEventListener('submit', function() {
+            document.getElementById('submitButton').disabled = true;
+            document.getElementById('submitButton').value = 'Отправка...';
+          });
+        });

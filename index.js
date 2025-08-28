@@ -1,11 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2/promise'); // Использует mysql2 с Promise API
-const validator = require('validator'); // Для валидации данных
+const mysql = require('mysql2/promise');
+const validator = require('validator');
 const expressLayouts = require('express-ejs-layouts');
 const path = require('path');
 const Logger = require('./logger');
+const session = require('express-session');
+const csrf = require('csurf');
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
@@ -17,6 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(expressLayouts);
 app.set('layout', 'layout');
+
 // Middleware для обработки URL-encoded форм
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -38,9 +42,37 @@ const logger = new Logger({
 const PORT = process.env.PORT || 3000;
 const HOSTNAME = process.env.HOSTNAME || "0.0.0.0"; // Слушает все IP-адреса
 
+// Session configuration
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
+}));
+
+// CSRF protection
+const csrfProtection = csrf({ cookie: false }); // Use session
+
+// Apply CSRF protection after session middleware
+app.use(csrfProtection);
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: "Слишком много запросов с этого IP, пожалуйста, попробуйте позже через 15 минут."
+});
+
+// Middleware to pass CSRF token to views
+app.use(function (req, res, next) {
+    res.locals.csrfToken = req.csrfToken();
+    next();
+  });
+
 // Маршруты
-app.get('/', (req, res) => {
-    res.render('index', { title: 'Главная' });
+app.get('/', csrfProtection, (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.render('index', { title: 'Главная', csrfToken: req.csrfToken()});
     console.log('web №1 worked');
 });
 
@@ -50,16 +82,22 @@ app.get('/contact', (req, res) => {
 });
 
 // Маршрут для обработки отправки формы
-app.post('/save-data', async (req, res) => {
+app.post('/save-data', limiter, csrfProtection, async (req, res) => {
     try {
         console.log("req.body:", req.body);
-        const { Z, Like, COMMENT, dateTime } = req.body;
+        const { Z, Like, COMMENT, dateTime, honeypot } = req.body;
+
+        // Honeypot check
+        if (honeypot) {
+            console.log("Бот обнаружен!");
+            return res.status(400).send("Бот обнаружен.");
+        }
 
         // Валидация и санитизация данных
-            const validatedZ = Z ? validator.escape(Z) : null;
-            const validatedLike = Like ? validator.escape(Like) : null;
-            const validatedCOMMENT = COMMENT ? validator.escape(COMMENT) : null;
-            const validatedDateTime = dateTime ? validator.escape(dateTime) : null;
+        const validatedZ = Z ? validator.escape(Z) : null;
+        const validatedLike = Like ? validator.escape(Like) : null;
+        const validatedCOMMENT = COMMENT ? validator.escape(COMMENT) : null;
+        const validatedDateTime = dateTime ? validator.escape(dateTime) : null;
 
         // Подключение к базе данных
         const connection = await mysql.createConnection(dbConfig);
@@ -79,7 +117,8 @@ app.post('/save-data', async (req, res) => {
         ]);
 
         console.log('Данные сохранены в базе данных:', rows);
-        res.send('Спасибо за ваш отзыв! Данные сохранены.');
+        // Redirect after successful submission
+        res.redirect('/thank-you');
 
         await connection.end(); // Закрыть соединение
     } catch (error) {
@@ -87,6 +126,20 @@ app.post('/save-data', async (req, res) => {
         res.status(500).send('Ошибка сохранения данных.');
     }
 });
+
+// Thank you route
+app.get('/thank-you', (req, res) => {
+    res.render('thank-you', { title: 'Спасибо за ваш отзыв!' });
+});
+
+// Error handling middleware for CSRF errors
+app.use(function (err, req, res, next) {
+    if (err.code !== 'EBADCSRFTOKEN') return next(err)
+
+    // handle CSRF token errors here
+    res.status(403)
+    res.send('Form tampered with')
+  })
 
 // Middleware для логирования запросов
 app.use((req, res, next) => {

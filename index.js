@@ -68,6 +68,17 @@ const limiter = rateLimit({
 const csrfProtection = csurf({ cookie: false }); // Используем сессию
 
 app.use(csrfProtection);
+const helmet = require('helmet');
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"], // Источники по умолчанию (все остальные ресурсы)
+    scriptSrc: ["'self'", 'http://gc.kis.v2.scr.kaspersky-labs.com', 'ws://gc.kis.v2.scr.kaspersky-labs.com'], // Разрешенные источники для скриптов
+    objectSrc: ["'none'"], // Запрещаем object, embed и applet
+    upgradeInsecureRequests: [], // (optional) upgrade незащищенные запросы
+  },
+}));
+
 
 // Middleware to pass CSRF token to views
 app.use(function (req, res, next) {

@@ -68,7 +68,6 @@ const limiter = rateLimit({
 const csrfProtection = csurf({ cookie: false }); // Используем сессию
 
 app.use(csrfProtection);
-const helmet = require('helmet');
 
 app.use(helmet.contentSecurityPolicy({
   directives: {

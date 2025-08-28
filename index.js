@@ -44,7 +44,7 @@ const HOSTNAME = process.env.HOSTNAME || "0.0.0.0"; // Слушает все IP-
 
 // Session configuration
 app.use(session({
-  secret: 'your-secret-key',
+  secret: 'SunsqSmia6U91~`9',
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false }

@@ -1,4 +1,11 @@
-require('dotenv').config();
+require('dotenv').config({ 
+    override: true, 
+    path: ['process.env'], 
+    debug: true, 
+    quiet: true, 
+    encoding: 'latin1'
+});
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
@@ -10,6 +17,7 @@ const session = require('express-session');
 const csurf = require('csurf');
 const rateLimit = require("express-rate-limit");
 const helmet = require('helmet');
+const { title } = require('process');
 
 const app = express();
 
@@ -27,10 +35,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // Database config
 const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '2006_Uk0',
-    database: process.env.DB_DATABASE || 'my_app'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE
 };
 
 // Logger initialization
@@ -40,12 +48,12 @@ const logger = new Logger({
 });
 
 // Environment variables or defaults
-const PORT = process.env.PORT || 3000;
-const HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
+const PORT = process.env.PORT;
+const HOSTNAME = process.env.HOSTNAME;
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'SunsqSmia6U91~`9',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -72,7 +80,14 @@ app.use(csrfProtection);
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"], // Источники по умолчанию (все остальные ресурсы)
-    scriptSrc: ["'self'", 'http://gc.kis.v2.scr.kaspersky-labs.com', 'ws://gc.kis.v2.scr.kaspersky-labs.com'], // Разрешенные источники для скриптов
+    scriptSrc: [
+        "'self'",
+        'http://gc.kis.v2.scr.kaspersky-labs.com',
+        'ws://gc.kis.v2.scr.kaspersky-labs.com',
+        'https://unpkg.com/normalize.css@8.0.1/normalize.css',
+        'https://yastatic.net/s3/trbro/v20.5.1.0/i/service_logo.svg',
+        'https://yastatic.net/s3/trbro/v20.5.1.0/i/service_name.svg'
+    ], // Разрешенные источники для скриптов
     objectSrc: ["'none'"], // Запрещаем object, embed и applet
     upgradeInsecureRequests: [], // (optional) upgrade незащищенные запросы
   },
@@ -140,14 +155,19 @@ app.post('/save-data', limiter, csrfProtection, async (req, res) => {
     } catch (error) {
         console.error('Error saving to database:', error);
         logger.error(`Database error: ${error.message}`);
-        res.status(500).send('Internal Server Error'); // Generic error message for the user
+        res.status(500).redirect('/Server-error'); // Generic error message for the user
     }
 });
 
 // Thank you route
 app.get('/thank-you', (req, res) => {
     res.render('thank-you', { title: 'Спасибо за ваш отзыв!' });
+    setTimeout(res.redirect('/'), 100000);
 });
+
+app.get('/Server-error', (req, res) => {
+    res.status(500).render('500', {title: "Внутренняя ошибка сервера"})
+})
 
 // CSRF error handling
 app.use(function (err, req, res, next) {

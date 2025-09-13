@@ -255,3 +255,24 @@ footer{
     clip-path: circle(50% at 50% 50%);
     object-fit: cover;
 }
+    #status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    #status.success {
+      color: green;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+    }
+    #status.error {
+      color: red;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
+    #status.loading {
+      color: #0c5460;
+      background-color: #d1ecf1;
+      border: 1px solid #bee5eb;
+    }

@@ -1,3 +1,11 @@
+require('dotenv').config({ 
+    override: true, 
+    path: ['process.env'], 
+    debug: true, 
+    quiet: true, 
+    encoding: 'latin1'
+});
+
 const fs = require('fs');
 const path = require('path');
 const winston = require('winston');

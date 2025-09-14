@@ -1,3 +1,4 @@
+const config = require('./config');
 const fs = require('fs');
 const path = require('path');
 const winston = require('winston');
@@ -6,11 +7,12 @@ module.exports = class Logger {
     constructor({
         logDir = path.join(__dirname, 'logs'), // Папка для хранения логов
         level = 'info',                     // Уровень логирования (info, warn, error и т.д.)
+        nodenv = config.nodeEnv
     }) {
         this.logDir = logDir;
         this.level = level;
         this.logger = null;  // Инициализирует logger как null
-
+        this.nodeEnv = nodenv; 
         this._prepareDirs();   // Создаёт папку для логов, если её нет
         this._createLogger();  // Создаёт экземпляр Winston logger
     }
@@ -42,7 +44,7 @@ module.exports = class Logger {
         });
 
         // Если не production, то логирует также и в консоль
-        if (process.env.NODE_ENV !== 'production') {
+        if (this.nodeEnv !== 'production') {
             this.logger.add(new winston.transports.Console({
                 format: winston.format.combine(
                     winston.format.colorize(),

@@ -1,4 +1,4 @@
-require('dotenv').config();
+const config = require('./config');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
@@ -27,10 +27,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // Database config
 const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '2006_Uk0',
-    database: process.env.DB_DATABASE || 'my_app'
+    host:  config.db.host,
+    user: config.db.user,
+    password: config.db.password,
+    database: config.db.database
 };
 
 // Logger initialization
@@ -40,12 +40,12 @@ const logger = new Logger({
 });
 
 // Environment variables or defaults
-const PORT = process.env.PORT || 3000;
-const HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
+const PORT = config.port;
+const HOSTNAME = config.hostname;
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'SunsqSmia6U91~`9',
+  secret: config.sesion,
   resave: false,
   saveUninitialized: false,
   cookie: {

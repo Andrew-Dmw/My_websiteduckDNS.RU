@@ -1,4 +1,5 @@
 const config = require('./config');
+const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
@@ -15,11 +16,23 @@ const { title } = require('process');
 const app = express();
 
 // EJS setup
+app.use(cors());
 app.use('/.well-known', express.static(path.join(__dirname, '.well-known')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'),
+ /*   setHeaders: (res, path, stat) => {
+      if (path.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 день для CSS
+        } else if (path.endsWith('.js')) {
+            res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 час для JS
+        } else {
+            res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 год для остального
+        }
+    }
+}*/));
+
 app.use(expressLayouts);
 app.set('layout', 'layout');
 
@@ -71,21 +84,20 @@ const csrfProtection = csurf({ cookie: false }); // Использует сес�
 app.use(csrfProtection);
 
 app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"], // Источники по умолчанию (все остальные ресурсы)
-    scriptSrc: [
-        "'self'",
-        'http://gc.kis.v2.scr.kaspersky-labs.com',
-        'ws://gc.kis.v2.scr.kaspersky-labs.com',
-        'https://unpkg.com/normalize.css@8.0.1/normalize.css',
-        'https://yastatic.net/s3/trbro/v20.5.1.0/i/service_logo.svg',
-        'https://yastatic.net/s3/trbro/v20.5.1.0/i/service_name.svg'
-    ], // Разрешенные источники для скриптов
-    objectSrc: ["'none'"], // Запрещает object, embed и applet
-    upgradeInsecureRequests: [], // (optional) upgrade незащищенные запросы
-  },
+    directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+            "'self'", 
+            'https://www.example.com/example.html', 
+            'Https://gs.kis.v2.scr.kaspersky-labs.com/2B261B90-DDD6-41A9-ABDB-7DF2890ED537/371727D8-559B-4D96-8D57-6D0C74C51B6D/shutdown/pagehide?tm=2025-09-14T09%A37%A32.877Z'
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
+        imgSrc: ["'self'", "data:", 'https://yastatic.net'],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+    },
 }));
-
 
 // Middleware to pass CSRF token to views
 app.use(function (req, res, next) {
@@ -174,6 +186,12 @@ app.use(function (err, req, res, next) {
 // Middleware for logging requests
 app.use((req, res, next) => {
     logger.info(`${req.method} ${req.url}`);
+    next();
+});
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*"); // Разрешить запросы со всех доменов (не рекомендуется для production)
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
 

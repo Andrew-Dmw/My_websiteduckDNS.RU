@@ -1,11 +1,4 @@
-require('dotenv').config({ 
-    override: true, 
-    path: ['process.env'], 
-    debug: true, 
-    quiet: true, 
-    encoding: 'latin1'
-});
-
+const config = require('./config');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
@@ -35,10 +28,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // Database config
 const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE
+    host: config.db.host,
+    user: config.db.user,
+    password: config.db.password,
+    database: config.db.database
 };
 
 // Logger initialization
@@ -48,12 +41,12 @@ const logger = new Logger({
 });
 
 // Environment variables or defaults
-const PORT = process.env.PORT;
-const HOSTNAME = process.env.HOSTNAME;
+const PORT = config.port;
+const HOSTNAME = config.HOSTNAME;
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: config.sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -73,7 +66,7 @@ const limiter = rateLimit({
   message: "Слишком много запросов с этого IP, пожалуйста, попробуйте позже через 15 минут."
 });
 
-const csrfProtection = csurf({ cookie: false }); // Используем сессию
+const csrfProtection = csurf({ cookie: false }); // Использует сессию
 
 app.use(csrfProtection);
 
@@ -88,7 +81,7 @@ app.use(helmet.contentSecurityPolicy({
         'https://yastatic.net/s3/trbro/v20.5.1.0/i/service_logo.svg',
         'https://yastatic.net/s3/trbro/v20.5.1.0/i/service_name.svg'
     ], // Разрешенные источники для скриптов
-    objectSrc: ["'none'"], // Запрещаем object, embed и applet
+    objectSrc: ["'none'"], // Запрещает object, embed и applet
     upgradeInsecureRequests: [], // (optional) upgrade незащищенные запросы
   },
 }));

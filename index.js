@@ -90,6 +90,7 @@ app.get('/contact', (req, res) => {
 // Route for form submission
 app.post('/save-data', limiter, csrfProtection, async (req, res) => {
     try {
+        logger.debug(`Выполнение запроса...`);
         console.log("req.body:", req.body);
         const { Z, Like, COMMENT, dateTime, honeypot } = req.body;
 

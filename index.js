@@ -142,7 +142,7 @@ app.get('/thank-you', (req, res) => {
 
 // CSRF error handling
 app.use(function (err, req, res, next) {
-    if (err.code !== 'EBADCSRFTOKEN') return next(err)
+    if (err.code !== config.csrf) return next(err)
 
     // handle CSRF token errors here
     res.status(403)
